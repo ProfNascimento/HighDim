@@ -32,8 +32,11 @@ cor(data_features) %>%
   ggplot(aes(x = feature_x, y = feature_y, fill = correlation)) + 
   geom_tile() + 
   labs(x = NULL,y = NULL) +
+  scico::scale_fill_scico(palette = "cork", limits = c(-1,1)) + 
   coord_fixed() + 
-  theme(axis.text.x = element_text(hjust = 1, angle = 30))
+  theme(text = element_text(size = 30),
+        axis.text.x = element_text(hjust = 1, angle = 30),
+        legend.title=element_blank())
 
 ###############################
 ## ----------PCA------------ ##
