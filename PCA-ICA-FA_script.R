@@ -1,9 +1,7 @@
 #######################################
-## MODIFED FROM Prof. Daniel Roelfs  ##
-## https://danielroelfs.com/blog/a-basic-comparison-between-factor-analysis-pca-and-ica/
-
 library(tidyverse)
 library(fastICA)
+library(factoextra)
 set.seed(21)
 theme_set(theme_minimal())
 
@@ -40,7 +38,7 @@ cor(data_features) %>%
 ###############################
 ## ----------PCA------------ ##
 ###############################
-pc_model <- prcomp(data_features)
+pc_model <- prcomp(data_features,center = TRUE, scale. = TRUE)
 pc_model$variance <- pc_model$sdev^2
 
 pc_model$variance %>% 
@@ -56,12 +54,24 @@ pc_model$variance %>%
 
 ## NUMBERS OF COMPONENTS
 n_comps=3
-  
+
 pc_weight_matrix <- pc_model$rotation %>% 
   data.frame() %>% 
   rownames_to_column("variable") %>% 
   pivot_longer(starts_with("PC"), names_to = "prin_comp", values_to = "loading")
 
+## PCA VISUALIZATION
+fviz_pca_var(pc_model, col.var="contrib")+
+  scale_color_gradient2(low="#56B4E9", mid="orange", 
+                        high="#E69F00", midpoint=10)+theme_bw()
+
+fviz_pca_biplot(pc_model,
+                select.ind = list(contrib = 5))
+
+fviz_pca_ind(pc_model, label="none", habillage=DB$Activity,
+             addEllipses=TRUE, ellipse.level=0.7, alpha=0.05)
+
+## Orthogonal (INDEPENDENT) SPACE generated from the PCA obtained dimensions
 pc_model$x %>% 
   cor() %>% 
   data.frame() %>% 
@@ -78,6 +88,10 @@ pc_model$x %>%
   scico::scale_fill_scico(palette = "berlin", limits = c(-1,1)) + 
   coord_equal()
 
+# SELECTING OBS (#4551)
+as.matrix(data_features[4551,])%*%pc_model$rotation
+
+# VISUALIZATION OF ALL POINTS PER COMPONENT
 features_PCA=as.matrix(data_features)%*%pc_model$rotation
 plot(features_PCA[,1],type="l")
 plot(features_PCA[,2],type="l")
@@ -92,6 +106,9 @@ ica_weight_matrix <- data.frame(t(ica_model$A)) %>%
   rename_with(~ str_glue("IC{seq(.)}")) %>%
   mutate(variable = names(data_features)) %>%
   pivot_longer(cols = starts_with("IC"), names_to = "ic", values_to = "loading")
+
+# SELECTING OBS (#4551)
+as.matrix(data_features[4551,])%*%t(ica_model$A)
 
 ## NEW FEATURES BASED ON THE ADJUSTED ICA
 features_ICA=as.matrix(data_features)%*%t(ica_model$A)
@@ -133,15 +150,15 @@ pairs(features_FA)
 
 # LOADINGS COMPARISON (PCA-ICA-FA)
 all_weight_matrices <- bind_rows(
-  fa_weight_matrix %>% 
-    rename(comp = factor) %>% 
-    mutate(alg = "FA"),
   pc_weight_matrix %>% 
     rename(comp = prin_comp) %>% 
     mutate(alg = "PCA"), 
   ica_weight_matrix %>% 
     rename(comp = ic) %>% 
-    mutate(alg = "ICA")
+    mutate(alg = "ICA"),
+  fa_weight_matrix %>% 
+    rename(comp = factor) %>% 
+    mutate(alg = "FA")
 )
 
 all_weight_matrices %>% 
