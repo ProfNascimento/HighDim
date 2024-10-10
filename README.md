@@ -4,6 +4,6 @@ This repository was created in order to enable a didactic example of the three u
 
 ![harvester](https://github.com/user-attachments/assets/2024ef1b-81a0-4faf-abd1-722dfd95b58c)
 
-Which one can compare the three major components of their structure across the techniques --PCA, ICA, FA--
+Which one can compare the three major components of their Variance-Covariance shrinkage structure across the techniques --PCA, ICA, FA--
 
 ![COMP](https://github.com/user-attachments/assets/73fa8112-dbcd-4804-96a0-6c35c57b07f0)
